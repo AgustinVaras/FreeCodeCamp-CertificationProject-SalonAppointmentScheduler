@@ -30,17 +30,12 @@ MAIN_MENU() {
     then
       MAIN_MENU 'That is not a valid service number'
     else
-      #Validate existint service
-      VALID_SERVICE=false
-      echo "$SERVICES_SELECT" | while read SERVICE_ID BAR NAME
-      do
-        if [[ $SERVICE_ID == $SERVICE_ID_TO_SCHEDULE ]]
-        then
-          VALID_SERVICE=true          
-        fi
-      done
-      if [[ $VALID_SERVICE != true ]] 
+      #Validate existing service      
+      IS_VALID_SERVICE=$($PSQL "SELECT CASE WHEN EXISTS ( SELECT * FROM services WHERE service_id = $SERVICE_ID_TO_SCHEDULE ) THEN 1 ELSE 0 END " | sed -E 's/^ *| *$//g' )
+      echo $IS_VALID_SERVICE
+      if [[ $IS_VALID_SERVICE != 1 ]]
       then
+        #if not exist
         MAIN_MENU "That's not a valid service number"
       else
         #Read phone number
@@ -48,19 +43,32 @@ MAIN_MENU() {
         read PHONE_NUMBER
         #Get customer ID and Name
         echo "$($PSQL "SELECT customer_id, name FROM customers WHERE phone = '$PHONE_NUMBER'" )" | read CUSTOMER_ID BAR NUMBER 
+        
         #If not found
         if [[ -z $CUSTOMER_ID ]]
         then
           echo -e "\nI couldn't find that phone number, what's your name?"
           read NAME
           #Insert new customer
+          NEW_CUSTOMER $NAME $PHONE_NUMBER
         fi
       fi
+
     fi
   fi
 }
 
 
+
+NEW_CUSTOMER() { #Inserts a new customer to the DB
+  if [[ -z $1 || -z $2 ]]
+  then
+    echo -e "\nError, missing argument"
+    return
+  else
+    INSERT_CUSTOMER_RESULT=$($PSQL "INSERT INTO customers(name, phone) VALUES($1, $2)" )
+  fi
+}
  
 
 EXIT() { #Función de salida del programa
