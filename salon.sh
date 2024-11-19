@@ -60,9 +60,12 @@ MAIN_MENU() {
         fi
 
         #Read time
-        echo -e "What time would you like your $SERVICE_NAME, $CUSTOMER_NAME"
+        echo -e "\nWhat time would you like your $SERVICE_NAME, $CUSTOMER_NAME"
         read TIME
 
+        #Insert new appointment
+        NEW_APPOINTMENT $CUSTOMER_ID $SERVICE_ID_TO_SCHEDULE $TIME
+        echo -e "\nI have put you down for a $SERVICE_NAME at $TIME, $CUSTOMER_NAME"
 
       fi
 
@@ -83,6 +86,19 @@ NEW_CUSTOMER() { #Inserts a new customer to the DB
   fi
 }
  
+NEW_APPOINTMENT() {
+  if [[ -z $1 || -z $2 || -z $3 ]]
+  then
+    echo -e "\nError, missing argument"
+    return
+  else
+    INSERT_APPOINTMENT_RESULT=$($PSQL "INSERT INTO appointments(customer_id, service_id, time) VALUES($1, $2, '$3') " )
+    if [[ $INSERT_APPOINTMENT_RESULT != 'INSERT 0 1' ]]
+    then
+      MAIN_MENU "Error, i could not schedule that appointment"      
+    fi
+  fi
+}
 
 EXIT() { #Función de salida del programa
   echo -e "\nThank you for coming"
