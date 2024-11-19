@@ -31,9 +31,9 @@ MAIN_MENU() {
       MAIN_MENU 'That is not a valid service number'
     else
       #Validate existing service      
-      IS_VALID_SERVICE=$($PSQL "SELECT CASE WHEN EXISTS ( SELECT * FROM services WHERE service_id = $SERVICE_ID_TO_SCHEDULE ) THEN 1 ELSE 0 END " | sed -E 's/^ *| *$//g' )
+      SERVICE_NAME=$($PSQL "SELECT name FROM services WHERE service_id = $SERVICE_ID_TO_SCHEDULE " | sed -E 's/^ *| *$//g' )
 
-      if [[ $IS_VALID_SERVICE != 1 ]]
+      if [[ -z $SERVICE_NAME ]]
       then
         #if not exist
         MAIN_MENU "That's not a valid service number"
@@ -41,21 +41,27 @@ MAIN_MENU() {
         #Read phone number
         echo -e "\nPlease input your phone number"
         read PHONE_NUMBER
-        #Get customer ID and Name
-        echo "$($PSQL "SELECT customer_id, name FROM customers WHERE phone = '$PHONE_NUMBER'" )" | read CUSTOMER_ID BAR NAME 
-        
+        #Get customer ID
+        CUSTOMER_ID=$($PSQL "SELECT customer_id FROM customers WHERE phone = '$PHONE_NUMBER' " )
+
         #If not found
         if [[ -z $CUSTOMER_ID ]]
         then
           echo -e "\nI couldn't find that phone number, what's your name?"
-          read NAME
+          read CUSTOMER_NAME
           #Insert new customer
-          NEW_CUSTOMER $NAME $PHONE_NUMBER      
+          NEW_CUSTOMER $CUSTOMER_NAME $PHONE_NUMBER      
 
           #Get new customer ID
           CUSTOMER_ID=$($PSQL "SELECT customer_id FROM customers WHERE phone = '$PHONE_NUMBER' " )    
+        else
+          #Get customer name
+          CUSTOMER_NAME=$($PSQL "SELECT name FROM customers WHERE customer_id = $CUSTOMER_ID " | sed -E 's/^ *| *$//g' ) 
         fi
-                
+
+        #Read time
+        echo -e "What time would you like your $SERVICE_NAME, $CUSTOMER_NAME"
+        read TIME
 
 
       fi
