@@ -65,8 +65,8 @@ MAIN_MENU() {
 
         #Insert new appointment
         NEW_APPOINTMENT $CUSTOMER_ID $SERVICE_ID_TO_SCHEDULE $TIME
-        echo -e "\nI have put you down for a $SERVICE_NAME at $TIME, $CUSTOMER_NAME"
-
+        MAIN_MENU "\nI have put you down for a $SERVICE_NAME at $TIME, $CUSTOMER_NAME"
+        
       fi
 
     fi
