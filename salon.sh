@@ -12,6 +12,11 @@ MAIN_MENU() {
   fi
 }
 
+EXIT_MENU() {
+  echo -e "\nThank you for coming"
+  exit
+}
+
 SERVICES_MENU() {
   SERVICES_SELECT=$($PSQL "SELECT service_id, name FROM services" )
   if [[ -z $SERVICES_SELECT ]]
@@ -23,7 +28,15 @@ SERVICES_MENU() {
     do          
       echo "$SERVICE_ID) $NAME" 
     done
+    echo "---------"
+    echo "0) Exit"
     read SERVICE_ID_TO_SCHEDULE
+
+    #Exit
+    if [[ $SERVICE_ID_TO_SCHEDULE == 0 ]]
+    then
+      EXIT_MENU
+    fi
     if [[ ! $SERVICE_ID_TO_SCHEDULE =~ ^[0-9]+$ ]]
     then
       MAIN_MENU 'That is not a valid service number'
@@ -31,7 +44,15 @@ SERVICES_MENU() {
       #Read phone number
       echo -e "\nPlease input your phone number"
       read PHONE_NUMBER
+
+      #Get customer ID and Name
+      echo "$($PSQL "SELECT customer_id, name FROM customers WHERE phone = '$PHONE_NUMBER'" )" | read CUSTOMER_ID BAR NUMBER 
+
       #If not found
+      if [[ -z $CUSTOMER_ID ]]
+      then
+        echo -e "\nI couldn't find that phone number, what's your name?"
+      fi
     fi
   fi
 } 
