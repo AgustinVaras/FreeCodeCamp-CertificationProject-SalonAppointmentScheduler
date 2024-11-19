@@ -32,7 +32,7 @@ MAIN_MENU() {
     else
       #Validate existing service      
       IS_VALID_SERVICE=$($PSQL "SELECT CASE WHEN EXISTS ( SELECT * FROM services WHERE service_id = $SERVICE_ID_TO_SCHEDULE ) THEN 1 ELSE 0 END " | sed -E 's/^ *| *$//g' )
-      echo $IS_VALID_SERVICE
+
       if [[ $IS_VALID_SERVICE != 1 ]]
       then
         #if not exist
@@ -42,7 +42,7 @@ MAIN_MENU() {
         echo -e "\nPlease input your phone number"
         read PHONE_NUMBER
         #Get customer ID and Name
-        echo "$($PSQL "SELECT customer_id, name FROM customers WHERE phone = '$PHONE_NUMBER'" )" | read CUSTOMER_ID BAR NUMBER 
+        echo "$($PSQL "SELECT customer_id, name FROM customers WHERE phone = '$PHONE_NUMBER'" )" | read CUSTOMER_ID BAR NAME 
         
         #If not found
         if [[ -z $CUSTOMER_ID ]]
@@ -50,8 +50,14 @@ MAIN_MENU() {
           echo -e "\nI couldn't find that phone number, what's your name?"
           read NAME
           #Insert new customer
-          NEW_CUSTOMER $NAME $PHONE_NUMBER
+          NEW_CUSTOMER $NAME $PHONE_NUMBER      
+
+          #Get new customer ID
+          CUSTOMER_ID=$($PSQL "SELECT customer_id FROM customers WHERE phone = '$PHONE_NUMBER' " )    
         fi
+                
+
+
       fi
 
     fi
@@ -66,7 +72,8 @@ NEW_CUSTOMER() { #Inserts a new customer to the DB
     echo -e "\nError, missing argument"
     return
   else
-    INSERT_CUSTOMER_RESULT=$($PSQL "INSERT INTO customers(name, phone) VALUES($1, $2)" )
+    INSERT_CUSTOMER_RESULT=$($PSQL "INSERT INTO customers(name, phone) VALUES('$1', '$2')" )
+    # echo "$1, $2"
   fi
 }
  
