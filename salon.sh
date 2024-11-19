@@ -23,6 +23,16 @@ SERVICES_MENU() {
     do          
       echo "$SERVICE_ID) $NAME" 
     done
+    read SERVICE_ID_TO_SCHEDULE
+    if [[ ! $SERVICE_ID_TO_SCHEDULE =~ ^[0-9]+$ ]]
+    then
+      MAIN_MENU 'That is not a valid service number'
+    else
+      #Read phone number
+      echo -e "\nPlease input your phone number"
+      read PHONE_NUMBER
+      #If not found
+    fi
   fi
 } 
 
